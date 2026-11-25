@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "dsh-gohome",
+    "description": "Shows a live countdown below the message composer for your own workday: remaining time, today's progress, a pre-work countdown, an off-work state after the end time, and a rest label on weekends. Change the hours in place by clicking the row, or open Settings > Workday countdown to save and reset to defaults; changes apply immediately and are stored in this browser. The row reads only the local clock and sends nothing anywhere."
+  }
+}
