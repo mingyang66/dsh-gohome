@@ -83,3 +83,7 @@ Then pass the absolute path of that directory to `plugin_manager` `install_bundl
 ### License
 
 [MIT](LICENSE)
+
+## 发布流程
+
+维护者看 [docs/PUBLISHING.md](docs/PUBLISHING.md)：GitHub 发布、dsh-market 收录 PR、npm 可选发布、版本迭代与排错。
