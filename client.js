@@ -69,7 +69,7 @@ window.__ModuleLoader__.load({
     const FALLBACK = DICTS.en;
 
     const CSS = [
-      '.dsh-gohome{display:flex;align-items:center;gap:6px;padding:1px 4px;min-width:0;order:9999;',
+      '.dsh-gohome{display:flex;align-items:center;gap:8px;padding:1px 4px;min-width:0;order:9999;',
       'font-size:calc(var(--dsh-content-font-size-secondary,13px) - 1px);',
       'line-height:calc(20px + var(--dsh-content-font-delta-secondary,0px));',
       'color:var(--dsw-alias-label-tertiary,var(--dsw-alias-label-secondary));',
@@ -79,10 +79,10 @@ window.__ModuleLoader__.load({
       '.dsh-gohome__row:hover .dsh-gohome__label{color:var(--dsw-alias-label-primary)}',
       '.dsh-gohome__label{flex:0 0 auto;overflow:hidden;text-overflow:ellipsis}',
       '.dsh-gohome__value{flex:0 0 auto;font-weight:600;color:var(--dsw-alias-label-primary)}',
-      '.dsh-gohome__meter{flex:0 1 72px;min-width:32px;height:4px;border-radius:999px;overflow:hidden;',
+      '.dsh-gohome__meter{flex:0 1 72px;min-width:32px;height:4px;border-radius:999px;overflow:hidden;margin-left:6px;',
       'background:var(--dsw-alias-border-l3,var(--dsw-alias-border-l1))}',
       '.dsh-gohome__fill{display:block;height:100%;border-radius:999px;transition:width .4s linear}',
-      '.dsh-gohome__pct{flex:0 0 auto;color:var(--dsw-alias-label-tertiary,var(--dsw-alias-label-secondary))}',
+      '.dsh-gohome__pct{flex:0 0 auto;margin-left:2px;color:var(--dsw-alias-label-tertiary,var(--dsw-alias-label-secondary))}',
       '.dsh-gohome__time{box-sizing:border-box;width:80px;height:24px;padding:0 4px;border-radius:6px;',
       'border:1px solid var(--dsw-alias-border-l4,var(--dsw-alias-border-l1));background:transparent;',
       'color:var(--dsw-alias-label-primary);font:inherit}',
