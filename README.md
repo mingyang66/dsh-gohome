@@ -1,5 +1,7 @@
 # dsh-gohome 下班倒计时
 
+> 当前版本 **1.1.0** · [更新日志](CHANGELOG.md) · [发布流程](docs/PUBLISHING.md)
+
 在 DeepSeek Harness 消息输入框下方的 dock 区域显示一行实时倒计时，按你设置的上下班时间计算（默认 09:00 上班、18:00 下班）。
 
 - **上班时间之前**：`距离上班 HH:MM:SS`
@@ -40,6 +42,8 @@
 
 - 仅按本地时区计算，不做跨时区换算。
 - 不识别法定节假日与调休，只按周一至周五判断工作日。
+- 提醒只是行内视觉脉冲，没有系统通知或声音；页面不在前台时看不到。
+- 目前只支持单一工作时段，午休拆分（上午/下午两段）还在计划中。
 - 设置按浏览器保存（localStorage），不同浏览器/设备互不同步；写存储失败时会提示「未能写入浏览器存储，仅本次有效」，不会谎报已保存。
 - 关闭插件后该行消失，不影响会话数据。
 
@@ -49,13 +53,18 @@
 | --- | --- |
 | `cordis.patch.yml` | 插入 `dsh-gohome` 插件行 |
 | `index.js` | Host 半边（无逻辑） |
-| `client.js` | 倒计时 UI 与 locale 注册 |
+| `client.js` | 倒计时 UI、提醒与加班状态机、locale 注册 |
 | `locale/en.json`, `locale/zh.json` | 插件管理器标题与描述 |
 | `icon.svg` | 插件图标 |
+| `CHANGELOG.md` | 版本变化 |
+| `docs/PUBLISHING.md` | 发布、收录、排错手册 |
+| `test/contract.test.mjs` | 包契约测试（7 项） |
 
 ## English
 
-`dsh-gohome` shows a live workday countdown below the message composer: time left, today's progress, a "wrapping up" state for the last 30 minutes, an "off work for" timer after the end time, and a weekend label. Click the row to edit the hours in place, or open the Settings entry (「下班倒计时」 / "Workday countdown") to save or reset them. Settings are stored in `localStorage`; the plugin has no dependencies and no build step, and it never makes network requests.
+`dsh-gohome` shows a live workday countdown below the message composer: time left, today's progress, an ahead-reminder pulse N minutes before the end (30 by default) plus a final 5-minute pulse, an overtime timer (`+HH:MM:SS`) after the workday ends, and a weekend label. Click the row to edit the hours in place, or open the Settings entry (「下班倒计时」 / "Workday countdown") to save the hours, adjust the reminder (0-120 minutes), or reset to defaults. Settings live in `localStorage`; the plugin has no dependencies, no build step, and makes no network requests.
+
+Current release: **1.1.0** — see [CHANGELOG](CHANGELOG.md).
 
 ### Install
 

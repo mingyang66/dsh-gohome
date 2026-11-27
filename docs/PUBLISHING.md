@@ -4,7 +4,7 @@
 
 - 仓库：https://github.com/mingyang66/dsh-gohome
 - 市场列表来源：https://github.com/awesome-dsh-plugin/awesome-dsh-plugin
-- 当前版本：`1.0.0`
+- 当前版本：`1.1.0`
 
 ---
 
@@ -12,11 +12,11 @@
 
 | 事项 | 状态 |
 | --- | --- |
-| 代码公开在 GitHub（public） | ✅ main = `ad5f668`，tag `v1.0.0` |
+| 代码公开在 GitHub（public） | ✅ main = `f5d8627`（1.1.0），tag `v1.0.0`、`v1.1.0` |
 | CI（`npm test` 契约测试） | ✅ GitHub Actions 通过 |
 | 本机 GitHub 源码安装验证 | ✅ `github:mingyang66/dsh-gohome` 安装成功，两个 slot 正常 |
 | npm 发布 | ❌ 未发布（可选，非必需） |
-| dsh-market 收录 | ❌ 未提交精选列表 PR |
+| dsh-market 收录 | ⏳ PR [#18970](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/pull/18970) 已提交，检查全绿，等维护者合并 |
 
 > 市场不会自动发现新仓库。**只有精选列表合并了条目，市场才搜得到。**
 
@@ -45,7 +45,7 @@
 ```powershell
 cd C:\Users\Administrator\Documents\deepseek-harness\default-workspace\dsh-gohome
 node test/contract.test.mjs      # 7 项契约测试
-npm pack --dry-run               # 期望 10 个文件、约 11 kB
+npm pack --dry-run               # 期望 11 个文件（含 docs）、约 15 kB
 ```
 
 ---
