@@ -7,8 +7,11 @@ window.__ModuleLoader__.load({
     const NS = 'dsh-gohome';
     const STORAGE_KEY = 'dsh-gohome:work-hours';
     const LEGACY_STORAGE_KEY = 'dsh-timer:work-hours';
-    const DEFAULT_HOURS = { start: '09:00', end: '18:00' };
+    const DEFAULT_HOURS = { start: '09:00', end: '18:00', remindMinutes: 30 };
     const LAST_CALL_SECONDS = 30 * 60;
+    const FINAL_CALL_SECONDS = 5 * 60;
+    const REMIND_MAX_MINUTES = 120;
+    const FLASH_MS = 6000;
     const BRAND = 'var(--dsw-alias-brand-primary)';
     const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -16,11 +19,15 @@ window.__ModuleLoader__.load({
       en: {
         untilOffWork: 'Until off work',
         untilWork: 'Until work starts',
-        afterWork: 'Off work for',
+        overtime: 'Overtime',
+        endNow: 'Time to go',
         lastCall: 'Wrapping up',
         weekend: 'Weekend',
         nextWorkday: 'Mon',
         progress: 'Progress',
+        remind: 'Remind ahead',
+        minutes: 'min',
+        remindError: 'Reminder must be 0-120 minutes',
         weekdays: 'Workday',
         startLabel: 'Start',
         endLabel: 'End',
@@ -41,11 +48,15 @@ window.__ModuleLoader__.load({
       zh: {
         untilOffWork: '距离下班',
         untilWork: '距离上班',
-        afterWork: '下班已过',
+        overtime: '加班',
+        endNow: '该下班了',
         lastCall: '即将下班',
         weekend: '周末休息',
         nextWorkday: '周一',
         progress: '进度',
+        remind: '提前提醒',
+        minutes: '分钟',
+        remindError: '提醒需在 0-120 分钟之间',
         weekdays: '工作日',
         startLabel: '上班',
         endLabel: '下班',
@@ -92,6 +103,9 @@ window.__ModuleLoader__.load({
       '.dsh-gohome__btn:hover{background:var(--dsw-alias-interactive-bg-hover,var(--dsw-alias-bg-layer-2))}',
       '.dsh-gohome__error{flex:0 0 auto;color:var(--dsw-alias-state-error-primary)}',
       '.dsh-gohome__edit{flex:0 0 auto;display:flex;align-items:center;opacity:.55}',
+      '.dsh-gohome--flash .dsh-gohome__value{animation:dsh-gohome-pulse .7s ease-in-out 5}',
+      '@keyframes dsh-gohome-pulse{0%,100%{opacity:1}50%{opacity:.3}}',
+      '@media (prefers-reduced-motion:reduce){.dsh-gohome--flash .dsh-gohome__value{animation:none;text-decoration:underline}}',
       '.dsh-gohome__row:hover .dsh-gohome__edit,.dsh-gohome__row:focus-visible .dsh-gohome__edit{opacity:1}',
       '.dsh-gohome__row:focus-visible,.dsh-gohome__time:focus-visible,.dsh-gohome__btn:focus-visible{',
       'outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}',
@@ -156,6 +170,15 @@ window.__ModuleLoader__.load({
       return !String(value || '').trim();
     }
 
+    /** Reminder minutes arrive as strings from number inputs and as absent from older records. */
+    function normalizeRemind(value) {
+      const minutes = Math.round(Number(value));
+      if (!Number.isFinite(minutes) || minutes < 0 || minutes > REMIND_MAX_MINUTES) {
+        return DEFAULT_HOURS.remindMinutes;
+      }
+      return minutes;
+    }
+
     function readHours() {
       try {
         const raw = window.localStorage.getItem(STORAGE_KEY)
@@ -163,7 +186,11 @@ window.__ModuleLoader__.load({
         if (!raw) return { ...DEFAULT_HOURS };
         const parsed = JSON.parse(raw);
         if (parsed && isValidRange(parsed.start, parsed.end)) {
-          const hours = { start: parsed.start, end: parsed.end };
+          const hours = {
+            start: parsed.start,
+            end: parsed.end,
+            remindMinutes: normalizeRemind(parsed.remindMinutes),
+          };
           // Carry a setting saved under the plugin's former name across the rename.
           if (!window.localStorage.getItem(STORAGE_KEY)) writeHours(hours);
           return hours;
@@ -249,6 +276,7 @@ window.__ModuleLoader__.load({
 
       if (weekday === 0 || weekday === 6) {
         return {
+          stage: 'weekend', remaining: 0,
           label: t('weekend'),
           value: t('nextWorkday') + ' ' + hours.start,
           percent: 0, tone: BRAND, showMeter: false,
@@ -256,21 +284,25 @@ window.__ModuleLoader__.load({
       }
       if (secondOfDay < startSeconds) {
         return {
+          stage: 'before', remaining: startSeconds - secondOfDay,
           label: t('untilWork'),
           value: formatClock(startSeconds - secondOfDay),
           percent: 0, tone: BRAND, showMeter: false,
         };
       }
       if (secondOfDay >= endSeconds) {
+        const elapsed = secondOfDay - endSeconds;
         return {
-          label: t('afterWork'),
-          value: formatClock(secondOfDay - endSeconds),
+          stage: 'overtime', remaining: 0,
+          label: elapsed < 60 ? t('endNow') : t('overtime'),
+          value: '+' + formatClock(elapsed),
           percent: 100, tone: BRAND, showMeter: false,
         };
       }
       const remaining = endSeconds - secondOfDay;
       const ratio = (secondOfDay - startSeconds) / workSeconds;
       return {
+        stage: 'work', remaining,
         label: remaining <= LAST_CALL_SECONDS ? t('lastCall') : t('untilOffWork'),
         value: formatClock(remaining),
         percent: Math.min(99, Math.max(0, Math.floor(ratio * 100))),
@@ -302,9 +334,31 @@ window.__ModuleLoader__.load({
       const [editing, setEditing] = React.useState(false);
       const [draft, setDraft] = React.useState(hours);
       const [error, setError] = React.useState('');
+      const [flashUntil, setFlashUntil] = React.useState(0);
+      const previous = React.useRef(null);
 
       const windowText = hours.start + '-' + hours.end;
       const state = computeState(hours, now, t);
+      const flashing = flashUntil > now;
+
+      // Pulse once when a reminder threshold is crossed, and once when the end time passes.
+      React.useEffect(function () {
+        const prior = previous.current;
+        previous.current = { stage: state.stage, remaining: state.remaining };
+        if (!prior) return;
+        let fired = false;
+        if (prior.stage === 'work' && state.stage === 'work') {
+          const marks = [hours.remindMinutes * 60, FINAL_CALL_SECONDS];
+          for (const mark of marks) {
+            if (mark > 0 && prior.remaining > mark && state.remaining <= mark) {
+              fired = true;
+              break;
+            }
+          }
+        }
+        if (prior.stage !== 'overtime' && state.stage === 'overtime') fired = true;
+        if (fired) setFlashUntil(Date.now() + FLASH_MS);
+      }, [state.stage, state.remaining, hours.remindMinutes]);
 
       // Follow a change made elsewhere while this row sits in edit mode with a clean draft.
       React.useEffect(function () {
@@ -330,7 +384,7 @@ window.__ModuleLoader__.load({
           setError(t('rangeError'));
           return;
         }
-        setHours({ start: draft.start, end: draft.end });
+        setHours({ start: draft.start, end: draft.end, remindMinutes: hours.remindMinutes });
         setEditing(false);
       }
 
@@ -388,7 +442,7 @@ window.__ModuleLoader__.load({
 
       return h(React.Fragment, null,
         h('style', null, CSS),
-        h('div', { className: 'dsh-gohome' },
+        h('div', { className: 'dsh-gohome' + (flashing ? ' dsh-gohome--flash' : '') },
           h('div', {
             className: 'dsh-gohome__row',
             role: 'button',
@@ -430,7 +484,9 @@ window.__ModuleLoader__.load({
       React.useEffect(function () {
         // An edit made elsewhere (the dock row) must not discard half-typed input here.
         setDraft(function (current) {
-          const dirty = current.start !== hours.start || current.end !== hours.end;
+          const dirty = current.start !== hours.start
+            || current.end !== hours.end
+            || String(current.remindMinutes) !== String(hours.remindMinutes);
           return dirty ? current : hours;
         });
       }, [hours]);
@@ -442,7 +498,9 @@ window.__ModuleLoader__.load({
       }, [feedback]);
 
       const state = computeState(hours, now, t);
-      const dirty = draft.start !== hours.start || draft.end !== hours.end;
+      const dirty = draft.start !== hours.start
+        || draft.end !== hours.end
+        || String(draft.remindMinutes) !== String(hours.remindMinutes);
 
       function save() {
         if (isEmptyValue(draft.start) || isEmptyValue(draft.end)) {
@@ -455,7 +513,13 @@ window.__ModuleLoader__.load({
           setFeedback('');
           return;
         }
-        const persisted = setHours({ start: draft.start, end: draft.end });
+        const remindMinutes = Number(draft.remindMinutes);
+        if (!Number.isInteger(remindMinutes) || remindMinutes < 0 || remindMinutes > REMIND_MAX_MINUTES) {
+          setError(t('remindError'));
+          setFeedback('');
+          return;
+        }
+        const persisted = setHours({ start: draft.start, end: draft.end, remindMinutes });
         setError('');
         setFeedback(persisted ? t('saved') : t('saveFailed'));
       }
@@ -502,6 +566,21 @@ window.__ModuleLoader__.load({
               'aria-describedby': error ? errorId : undefined,
               onChange: updateDraft('end'),
             }),
+          ),
+          h('label', { className: 'dsh-gohome-page__row' },
+            h('span', { className: 'dsh-gohome-page__label' }, t('remind')),
+            h('input', {
+              className: 'dsh-gohome-page__input',
+              type: 'number',
+              min: 0,
+              max: REMIND_MAX_MINUTES,
+              step: 5,
+              value: draft.remindMinutes,
+              'aria-invalid': error ? true : undefined,
+              'aria-describedby': error ? errorId : undefined,
+              onChange: updateDraft('remindMinutes'),
+            }),
+            h('span', { className: 'dsh-gohome-page__label' }, t('minutes')),
           ),
           error ? h('p', { className: 'dsh-gohome-page__error', id: errorId, role: 'alert' }, error) : null,
           h('div', { className: 'dsh-gohome-page__actions' },
