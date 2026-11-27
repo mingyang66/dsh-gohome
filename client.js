@@ -32,11 +32,9 @@ window.__ModuleLoader__.load({
         startLabel: 'Start',
         endLabel: 'End',
         save: 'Save',
-        cancel: 'Cancel',
         rangeError: 'End must be later than start',
         emptyError: 'Fill in both times first',
         saveFailed: 'Could not write browser storage; this session only',
-        editHint: 'Click to edit work hours',
         nav: 'Timer settings',
         settingsDesc: 'Countdown and reports use these hours. Changes apply immediately and are stored in this browser.',
         resetButton: 'Reset to defaults',
@@ -61,11 +59,9 @@ window.__ModuleLoader__.load({
         startLabel: '上班',
         endLabel: '下班',
         save: '保存',
-        cancel: '取消',
         rangeError: '结束时间需晚于开始时间',
         emptyError: '请先填写上下班时间',
         saveFailed: '未能写入浏览器存储，仅本次有效',
-        editHint: '点击修改上下班时间',
         nav: '计时配置',
         settingsDesc: '倒计时与播报都按这里的上下班时间计算。保存后立即生效，设置保存在本浏览器。',
         resetButton: '恢复默认',
@@ -85,30 +81,15 @@ window.__ModuleLoader__.load({
       'line-height:calc(20px + var(--dsh-content-font-delta-secondary,0px));',
       'color:var(--dsw-alias-label-tertiary,var(--dsw-alias-label-secondary));',
       'font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden}',
-      '.dsh-gohome__row{display:flex;align-items:center;gap:6px;min-width:0;padding:0;border:0;',
-      'background:none;font:inherit;color:inherit;cursor:pointer;border-radius:4px}',
-      '.dsh-gohome__row:hover .dsh-gohome__label{color:var(--dsw-alias-label-primary)}',
       '.dsh-gohome__label{flex:0 0 auto;overflow:hidden;text-overflow:ellipsis}',
       '.dsh-gohome__value{flex:0 0 auto;font-weight:600;color:var(--dsw-alias-label-primary)}',
       '.dsh-gohome__meter{flex:0 1 72px;min-width:32px;height:4px;border-radius:999px;overflow:hidden;margin-left:6px;',
       'background:var(--dsw-alias-border-l3,var(--dsw-alias-border-l1))}',
       '.dsh-gohome__fill{display:block;height:100%;border-radius:999px;transition:width .4s linear}',
       '.dsh-gohome__pct{flex:0 0 auto;margin-left:2px;color:var(--dsw-alias-label-tertiary,var(--dsw-alias-label-secondary))}',
-      '.dsh-gohome__time{box-sizing:border-box;width:80px;height:24px;padding:0 4px;border-radius:6px;',
-      'border:1px solid var(--dsw-alias-border-l4,var(--dsw-alias-border-l1));background:transparent;',
-      'color:var(--dsw-alias-label-primary);font:inherit}',
-      '.dsh-gohome__btn{box-sizing:border-box;height:24px;padding:0 8px;border-radius:6px;font:inherit;',
-      'cursor:pointer;border:1px solid var(--dsw-alias-border-l4,var(--dsw-alias-border-l1));',
-      'background:transparent;color:var(--dsw-alias-label-primary)}',
-      '.dsh-gohome__btn:hover{background:var(--dsw-alias-interactive-bg-hover,var(--dsw-alias-bg-layer-2))}',
-      '.dsh-gohome__error{flex:0 0 auto;color:var(--dsw-alias-state-error-primary)}',
-      '.dsh-gohome__edit{flex:0 0 auto;display:flex;align-items:center;opacity:.55}',
       '.dsh-gohome--flash .dsh-gohome__value{animation:dsh-gohome-pulse .7s ease-in-out 5}',
       '@keyframes dsh-gohome-pulse{0%,100%{opacity:1}50%{opacity:.3}}',
       '@media (prefers-reduced-motion:reduce){.dsh-gohome--flash .dsh-gohome__value{animation:none;text-decoration:underline}}',
-      '.dsh-gohome__row:hover .dsh-gohome__edit,.dsh-gohome__row:focus-visible .dsh-gohome__edit{opacity:1}',
-      '.dsh-gohome__row:focus-visible,.dsh-gohome__time:focus-visible,.dsh-gohome__btn:focus-visible{',
-      'outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}',
       '@media (max-width:640px){.dsh-gohome__pct{display:none}}',
       '@media (max-width:480px){.dsh-gohome__meter{display:none}}',
       '.dsh-gohome-page{display:flex;flex-direction:column;gap:12px;max-width:560px;padding:4px 0 16px;',
@@ -311,29 +292,10 @@ window.__ModuleLoader__.load({
       };
     }
 
-    function EditGlyph() {
-      return h('svg', {
-        width: 10, height: 10, viewBox: '0 0 10 10', 'aria-hidden': true,
-        style: { display: 'block' },
-      },
-        h('path', {
-          d: 'M1.2 8.8h7.6', fill: 'none',
-          stroke: 'currentColor', strokeWidth: 1.1, strokeLinecap: 'round',
-        }),
-        h('path', {
-          d: 'M2.1 6.4 6.6 1.9l1.5 1.5L3.6 7.9l-1.9.4z', fill: 'none',
-          stroke: 'currentColor', strokeWidth: 1.1, strokeLinejoin: 'round',
-        }),
-      );
-    }
-
     function Countdown(props) {
       const t = props.t;
       const hours = useHours();
       const now = useNow(1000);
-      const [editing, setEditing] = React.useState(false);
-      const [draft, setDraft] = React.useState(hours);
-      const [error, setError] = React.useState('');
       const [flashUntil, setFlashUntil] = React.useState(0);
       const previous = React.useRef(null);
 
@@ -360,107 +322,14 @@ window.__ModuleLoader__.load({
         if (fired) setFlashUntil(Date.now() + FLASH_MS);
       }, [state.stage, state.remaining, hours.remindMinutes]);
 
-      // Follow a change made elsewhere while this row sits in edit mode with a clean draft.
-      React.useEffect(function () {
-        setDraft(function (current) {
-          if (!editing) return current;
-          const dirty = current.start !== hours.start || current.end !== hours.end;
-          return dirty ? current : hours;
-        });
-      }, [hours, editing]);
-
-      function beginEdit() {
-        setDraft(hours);
-        setError('');
-        setEditing(true);
-      }
-
-      function commit() {
-        if (isEmptyValue(draft.start) || isEmptyValue(draft.end)) {
-          setError(t('emptyError'));
-          return;
-        }
-        if (!isValidRange(draft.start, draft.end)) {
-          setError(t('rangeError'));
-          return;
-        }
-        setHours({ start: draft.start, end: draft.end, remindMinutes: hours.remindMinutes });
-        setEditing(false);
-      }
-
-      function cancel() {
-        setError('');
-        setEditing(false);
-      }
-
-      function onFormKeyDown(event) {
-        if (event.key === 'Escape') {
-          event.preventDefault();
-          cancel();
-        } else if (event.key === 'Enter') {
-          event.preventDefault();
-          commit();
-        }
-      }
-
-      function updateDraft(field) {
-        return function (event) {
-          const next = { ...draft, [field]: event.target.value };
-          setDraft(next);
-          if (error) setError('');
-        };
-      }
-
-      if (editing) {
-        return h(React.Fragment, null,
-          h('style', null, CSS),
-          h('div', { className: 'dsh-gohome', onKeyDown: onFormKeyDown },
-            h('span', { className: 'dsh-gohome__label' }, t('startLabel')),
-            h('input', {
-              className: 'dsh-gohome__time',
-              type: 'time',
-              value: draft.start,
-              'aria-label': t('startLabel'),
-              'aria-invalid': error ? true : undefined,
-              onChange: updateDraft('start'),
-            }),
-            h('span', { className: 'dsh-gohome__label' }, t('endLabel')),
-            h('input', {
-              className: 'dsh-gohome__time',
-              type: 'time',
-              value: draft.end,
-              'aria-label': t('endLabel'),
-              'aria-invalid': error ? true : undefined,
-              onChange: updateDraft('end'),
-            }),
-            h('button', { type: 'button', className: 'dsh-gohome__btn', onClick: commit }, t('save')),
-            h('button', { type: 'button', className: 'dsh-gohome__btn', onClick: cancel }, t('cancel')),
-            error ? h('span', { className: 'dsh-gohome__error', role: 'alert' }, error) : null,
-          ),
-        );
-      }
-
       return h(React.Fragment, null,
         h('style', null, CSS),
-        h('div', { className: 'dsh-gohome' + (flashing ? ' dsh-gohome--flash' : '') },
-          h('div', {
-            className: 'dsh-gohome__row',
-            role: 'button',
-            tabIndex: 0,
-            'aria-label': state.label + ' ' + state.value + ' ' + t('editHint'),
-            title: t('weekdays') + ' ' + windowText + ' · ' + t('editHint'),
-            onClick: beginEdit,
-            onKeyDown: function (event) {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                beginEdit();
-              }
-            },
-          },
-            h('span', { className: 'dsh-gohome__label' }, state.label),
-            h('span', { className: 'dsh-gohome__value' }, state.value),
-            h('span', { className: 'dsh-gohome__edit' }, h(EditGlyph, null)),
-          ),
+        h('div', {
+          className: 'dsh-gohome' + (flashing ? ' dsh-gohome--flash' : ''),
+          title: t('weekdays') + ' ' + windowText,
+        },
+          h('span', { className: 'dsh-gohome__label' }, state.label),
+          h('span', { className: 'dsh-gohome__value' }, state.value),
           state.showMeter ? h('span', { className: 'dsh-gohome__meter', 'aria-hidden': true },
             h('span', {
               className: 'dsh-gohome__fill',

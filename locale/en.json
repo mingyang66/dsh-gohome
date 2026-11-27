@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "dsh-gohome",
-    "description": "Shows a live countdown below the message composer for your own workday: remaining time, today's progress, ahead reminders (30 minutes by default, plus a final 5-minute pulse), and an overtime timer that starts when the workday ends. Weekends get their own label. Change the hours in place by clicking the row, or open Settings > Timer settings to save, adjust the reminder, and reset to defaults; changes apply immediately and are stored in this browser. The row reads only the local clock and sends nothing anywhere."
+    "description": "Shows a live countdown below the message composer for your own workday: remaining time, today's progress, ahead reminders (30 minutes by default, plus a final 5-minute pulse), and an overtime timer that starts when the workday ends. Weekends get their own label. Open Settings > Timer settings to change the hours, adjust the reminder, and reset to defaults; changes apply immediately and are stored in this browser. The row reads only the local clock and sends nothing anywhere."
   }
 }
