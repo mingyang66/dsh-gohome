@@ -4,7 +4,7 @@
 
 - 仓库：https://github.com/mingyang66/dsh-gohome
 - 市场列表来源：https://github.com/awesome-dsh-plugin/awesome-dsh-plugin
-- 当前版本：`1.1.0`
+- 当前版本：`1.1.1`
 
 ---
 

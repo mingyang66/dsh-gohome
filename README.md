@@ -1,6 +1,6 @@
 # dsh-gohome 下班倒计时
 
-> 当前版本 **1.1.0** · [更新日志](CHANGELOG.md) · [发布流程](docs/PUBLISHING.md)
+> 当前版本 **1.1.1** · [更新日志](CHANGELOG.md) · [发布流程](docs/PUBLISHING.md)
 
 在 DeepSeek Harness 消息输入框下方的 dock 区域显示一行实时倒计时，按你设置的上下班时间计算（默认 09:00 上班、18:00 下班）。
 
@@ -27,7 +27,7 @@
 有两个入口，共用同一份设置，改动双向同步：
 
 1. **行内编辑（快）**：直接点倒计时这一行（鼠标点击，或 Tab 聚焦后按 Enter / 空格），同行变成 `上班 [09:00] 下班 [18:00] 保存 取消`，改完点保存；`Enter` 保存、`Esc` 取消。
-2. **设置页（完整）**：`设置 → 下班倒计时`，可改上下班时间、提前提醒分钟数、恢复默认，并显示当前状态预览；未改动时「保存」为禁用态。
+2. **设置页（完整）**：`设置 → 计时配置`，可改上下班时间、提前提醒分钟数、恢复默认，并显示当前状态预览；未改动时「保存」为禁用态。
 
 规则与限制：
 
@@ -62,9 +62,9 @@
 
 ## English
 
-`dsh-gohome` shows a live workday countdown below the message composer: time left, today's progress, an ahead-reminder pulse N minutes before the end (30 by default) plus a final 5-minute pulse, an overtime timer (`+HH:MM:SS`) after the workday ends, and a weekend label. Click the row to edit the hours in place, or open the Settings entry (「下班倒计时」 / "Workday countdown") to save the hours, adjust the reminder (0-120 minutes), or reset to defaults. Settings live in `localStorage`; the plugin has no dependencies, no build step, and makes no network requests.
+`dsh-gohome` shows a live workday countdown below the message composer: time left, today's progress, an ahead-reminder pulse N minutes before the end (30 by default) plus a final 5-minute pulse, an overtime timer (`+HH:MM:SS`) after the workday ends, and a weekend label. Click the row to edit the hours in place, or open the Settings entry (「计时配置」 / "Timer settings") to save the hours, adjust the reminder (0-120 minutes), or reset to defaults. Settings live in `localStorage`; the plugin has no dependencies, no build step, and makes no network requests.
 
-Current release: **1.1.0** — see [CHANGELOG](CHANGELOG.md).
+Current release: **1.1.1** — see [CHANGELOG](CHANGELOG.md).
 
 ### Install
 
